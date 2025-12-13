@@ -19,7 +19,9 @@ impl Plugin for CellPlugin {
                 gap: 4
             })
             .add_systems(Startup, spawn_grid)
-            .add_systems(Update, toggle_flag);
+            .add_systems(Update, 
+                (toggle_flag, reveal_flag)
+            );
     }
 }
 
@@ -170,8 +172,12 @@ fn toggle_flag(
     let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return; };
 
     for (mut cell, children) in &mut cells {
+        // Select the correct cell
         if cell.x != cx || cell.y != cy { continue; }
-        let Some(children) = children else { continue; };
+        // If a cell is revealed, it can't be flagged.
+        if cell.revealed { continue; }
+        // Unwrap children
+        let Some(children) = children else { panic!("Invalid cell entity had no children!") };
 
         cell.flagged = !cell.flagged;
 
@@ -184,6 +190,47 @@ fn toggle_flag(
             } else {
                 Visibility::Hidden
             };
+        }
+    }
+}
+
+fn reveal_flag(
+    grid: Res<CellGridResource>,
+    input: Res<ButtonInput<MouseButton>>,
+    asset_server: Res<AssetServer>,
+
+    windows: Query<&Window>,
+    camera_q: Query<(&Camera, &GlobalTransform)>,
+
+    mut cells: Query<(&mut Cell, Option<&Children>)>,
+    mut content_sprites: Query<(&mut Visibility, &mut Sprite), With<CellContent>>,
+) {
+    if !input.just_pressed(MouseButton::Left) {
+        return;
+    }
+
+    let texture = asset_server.load("one.png");
+
+    let Some(world_pos) = get_cursor_position(windows, camera_q) else { return; };
+    let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return; };
+
+    for (mut cell, children) in &mut cells {
+        // Select the correct cell
+        if cell.x != cx || cell.y != cy { continue; }
+        // If a cell is revealed, it can't be revealed again.
+        if cell.revealed { continue; }
+        // If a cell is flagged, it can't be revelead.
+        if cell.flagged { continue; }
+        // Unwrap children
+        let Some(children) = children else { panic!("Invalid cell entity had no children!") };
+
+        // Get content sprite
+        for child in children.iter() {
+            let Ok((mut visibility, mut sprite)) = content_sprites.get_mut(child) else { continue; };
+            
+            cell.revealed = true;
+            *visibility = Visibility::Visible;
+            sprite.image = texture.clone();
         }
     }
 }
