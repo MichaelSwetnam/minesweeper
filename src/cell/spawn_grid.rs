@@ -4,8 +4,7 @@ use crate::cell::*;
 /**
  * Returns a flattened X by Y 2d-vector.
  */
-fn generate_grid(grid_settings: &CellGridResource) -> Vec<CellType> {
-    const BOMB_CHANCE: f32 = 12.35; // %
+fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
     let idx = |x: u32, y: u32| -> usize {
         (y as usize * grid_settings.width as usize) + x as usize
     };
@@ -17,7 +16,7 @@ fn generate_grid(grid_settings: &CellGridResource) -> Vec<CellType> {
     // Insert bombs
     for x in 0..grid_settings.width {
         for y in 0..grid_settings.height {
-            if r.random::<f32>() < (BOMB_CHANCE / 100.0) {
+            if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
                 grid[idx(x, y)] = CellType::Bomb;
             }
         }
@@ -57,7 +56,7 @@ fn generate_grid(grid_settings: &CellGridResource) -> Vec<CellType> {
 
 pub fn spawn_grid(
     asset_server: Res<AssetServer>,
-    mut grid: ResMut<CellGridResource>,
+    mut grid: ResMut<Grid>,
     mut commands: Commands,
     mut layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
@@ -121,6 +120,7 @@ pub fn spawn_grid(
                 Sprite {
                     image: flag_texture.clone(),
                     texture_atlas: Some(layout_handle.clone().into()),
+                    color: Color::linear_rgb(1.0, 0.0, 0.0),
                     ..Default::default()
                 },
                 Transform::default(),

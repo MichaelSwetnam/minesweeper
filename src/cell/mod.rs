@@ -7,7 +7,10 @@ pub struct CellPlugin;
 impl Plugin for CellPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(CellGridResource::new())
+            .insert_resource(Grid {
+                mine_chance: 25.0,
+                ..Default::default()
+            })
             .add_message::<reveal_cells::RevealCellMessage>()
             .add_systems(Startup, spawn_grid::spawn_grid)
             .add_systems(Update, 
@@ -17,27 +20,15 @@ impl Plugin for CellPlugin {
 }
 
 #[derive(Resource)]
-pub struct CellGridResource {
+pub struct Grid {
     pub width: u32,
     pub height: u32,
     pub gap: u32,
     pub cell_size: u32,
+    pub mine_chance: f32, // Percentage
     cells: Vec<Option<Entity>>
 }
-impl CellGridResource {
-    fn new() -> Self {
-        let width = 10;
-        let height = 8;
-
-        Self {
-            width,
-            height,
-            cell_size: 16,
-            gap: 4,
-            cells: vec![None; (width * height) as usize] 
-        }
-    }
-    
+impl Grid {
     fn index(&self, x: u32, y: u32) -> usize {
         (y as usize * self.width as usize) + x as usize
     }
@@ -49,6 +40,22 @@ impl CellGridResource {
     fn insert(&mut self, x: u32, y: u32, entity: Entity) {
         let index = self.index(x, y);
         self.cells[index] = Some(entity);
+    }
+}
+
+impl Default for Grid {
+    fn default() -> Self {
+        let width = 16;
+        let height = 16;
+
+         Self {
+            width,
+            height,
+            cell_size: 16,
+            gap: 4,
+            mine_chance: 12.3,
+            cells: vec![None; (width * height) as usize] 
+        }
     }
 }
 
@@ -91,7 +98,7 @@ fn get_cursor_position(
     })
 }
 
-fn world_to_cell(pos: Vec2, grid: &CellGridResource) -> Option<(u32, u32)> {
+fn world_to_cell(pos: Vec2, grid: &Grid) -> Option<(u32, u32)> {
     let cell = grid.cell_size as f32;
     let gap = grid.gap as f32;
     let step = cell + gap;
@@ -123,7 +130,7 @@ fn world_to_cell(pos: Vec2, grid: &CellGridResource) -> Option<(u32, u32)> {
 }
 
 fn toggle_flag(
-    grid: Res<CellGridResource>,
+    grid: Res<Grid>,
     input: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,

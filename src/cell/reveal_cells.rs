@@ -11,7 +11,7 @@ pub fn reveal_cell(
     mut commands: Commands,
 
     asset_server: Res<AssetServer>,
-    grid: Res<CellGridResource>,
+    grid: Res<Grid>,
     children_q: Query<&Children>,
 
     mut reader: MessageReader<RevealCellMessage>,
@@ -29,6 +29,18 @@ pub fn reveal_cell(
         asset_server.load("seven.png"),
         asset_server.load("eight.png"),
     ]; 
+
+    // https://lospec.com/palette-list/flatter18#comments
+    let texture_colors = [
+        Color::linear_rgb(80.0 / 255.0, 96.0 / 255.0, 219.0 / 255.0),
+        Color::linear_rgb(21.0 / 255.0, 181.0 / 255.0, 81.0 / 255.0),
+        Color::linear_rgb(233.0 / 255.0, 64.0 / 255.0, 51.0 / 255.0),
+        Color::linear_rgb(63.0 / 255.0, 63.0 / 255.0, 143.0 / 255.0),
+        Color::linear_rgb(187.0 / 255.0, 51.0 / 255.0, 37.0 / 255.0),
+        Color::linear_rgb(45.0 / 255.0, 151.0 / 255.0, 170.0 / 255.0),
+        Color::linear_rgb(226.0 / 255.0, 181.0 / 255.0, 23.0 / 255.0),
+        Color::linear_rgb(177.0 / 255.0, 70.0 / 255.0, 193.0 / 255.0),
+    ];
 
     let mut queue = Vec::new();
 
@@ -89,6 +101,7 @@ pub fn reveal_cell(
                 } else {
                     *visibility = Visibility::Visible;
                     sprite.image = textures[cell.neighbor_mines as usize - 1].clone();
+                    sprite.color = texture_colors[cell.neighbor_mines as usize - 1];
                 }
             }
 
@@ -105,7 +118,7 @@ pub fn reveal_cell(
 
 pub fn handle_reveal_click(
     mut events: MessageWriter<RevealCellMessage>,
-    grid: Res<CellGridResource>,
+    grid: Res<Grid>,
     input: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
