@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::{Position, cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
+use crate::{cell::cell_factory::CellFactory, grid::Grid};
 use bevy::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -71,104 +71,16 @@ pub fn spawn_grid(
     asset_server: Res<AssetServer>,
     mut grid: ResMut<Grid>,
     mut commands: Commands,
-    mut layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let border_texture = asset_server.load("cell_border.png");
-    let flag_texture = asset_server.load("flag.png");
-
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(16, 16), 1, 1, None, None);
-    let layout_handle: Handle<TextureAtlasLayout> = layouts.add(layout);
-
-    let grid_x = grid.width;
-    let grid_y = grid.height;
-    let step = grid.cell_size as f32 + grid.gap as f32;
-
-    // Centering offsets
-    let offset_x = (grid_x as f32 * step) / 2.0;
-    let offset_y = (grid_y as f32 * step) / 2.0;
-
     let grid_cells = generate_grid(&grid);
     for (index, cell) in grid_cells.iter().enumerate() {
         let x = index as u32 % grid.width;
         let y = index as u32 / grid.width;
 
-        let transform_x = x as f32 * step - offset_x;
-        let transform_y = y as f32 * step - offset_y;
-
-        // let entity = commands.spawn((
-        //     match cell {
-        //         CellType::Mine => (
-        //             Position::new(x, y),
-        //             Cell,
-        //             Mine
-        //         ),
-        //         CellType::Wall => (
-        //             Position::new(x, y),
-        //             Cell,
-        //             Wall
-        //         ),
-
-        //         CellType::Air(_) => todo!(),
-        //     },
-        //     Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
-        //     Visibility::Visible,
-        // ))
-        let entity = 
-            match cell {
-                CellType::Mine => {
-                    commands.spawn((
-                        Position::new(x, y),
-                        Cell,
-                        Mine,
-                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
-                        Visibility::Visible,
-                    ))
-                },
-                CellType::Wall => {
-                    commands.spawn((
-                        Position::new(x, y),
-                        Cell,
-                        Wall,
-                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
-                        Visibility::Visible,
-                    ))
-                },
-                CellType::Air(neighbors) => {
-                    commands.spawn((
-                        Position::new(x, y),
-                        Cell,
-                        Air { neighbor_mines: *neighbors, revealed: false },
-                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
-                        Visibility::Visible,
-                    ))
-                }
-            }
-            .with_children(|parent| {
-                parent.spawn((
-                    Sprite {
-                        image: border_texture.clone(),
-                        texture_atlas: Some(layout_handle.clone().into()),
-                        ..Default::default()
-                    },
-                    Transform::default(),
-                    Visibility::Visible,
-                    CellBorder,
-                ));
-
-                parent.spawn((
-                    Sprite {
-                        image: flag_texture.clone(),
-                        texture_atlas: Some(layout_handle.clone().into()),
-                        color: Color::linear_rgb(1.0, 0.0, 0.0),
-                        ..Default::default()
-                    },
-                    Transform::default(),
-                    Visibility::Hidden,
-                    CellContent,
-                ));
-            })
-            .id();
-
-        grid.insert(x, y, entity);
+        match cell {
+            CellType::Air(n) => CellFactory::spawn_air(&mut commands, &mut grid, &asset_server, x, y, *n),
+            CellType::Mine =>        CellFactory::spawn_mine(&mut commands, &mut grid, &asset_server, x, y),
+            CellType::Wall =>        CellFactory::spawn_wall(&mut commands, &mut grid, &asset_server, x, y),
+        };
     }
 }
