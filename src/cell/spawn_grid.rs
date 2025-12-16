@@ -1,23 +1,35 @@
 use rand::Rng;
-use crate::cell::*;
+
+use crate::{Position, cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
+use bevy::prelude::*;
+
+#[derive(Debug, Clone)]
+enum CellType {
+    Air(u8),
+    Mine,
+    Wall
+}
 
 /**
  * Returns a flattened X by Y 2d-vector.
  */
 fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
+    use CellType::*;
+
+    // Helper fx
     let idx = |x: u32, y: u32| -> usize {
         (y as usize * grid_settings.width as usize) + x as usize
     };
 
     // Flattened width by height 2d array
-    let mut grid = vec![CellType::Safe(0); (grid_settings.width * grid_settings.height) as usize];
+    let mut grid: Vec<CellType> = vec![Air(0); (grid_settings.width * grid_settings.height) as usize];
     let mut r = rand::rng();
 
     // Insert bombs
     for x in 0..grid_settings.width {
         for y in 0..grid_settings.height {
             if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
-                grid[idx(x, y)] = CellType::Bomb;
+                grid[idx(x, y)] = Mine;
             }
         }
     }
@@ -25,7 +37,8 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
     // Calculate number of surrounding bombs.
     for x in 0..grid_settings.width {
         for y in 0..grid_settings.height {
-            let CellType::Safe(_) = grid[idx(x, y)] else { continue };
+            // Select only air elements
+            let Air(_) = grid[idx(x, y)] else { continue };
         
             let mut neighbors = 0;
 
@@ -40,14 +53,14 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
                     let Some(ny) = y.checked_add_signed(dy) else { continue };
 
                     if nx < grid_settings.width && ny < grid_settings.height {
-                        if matches!(grid[idx(nx, ny)], CellType::Bomb) {
+                        if matches!(grid[idx(nx, ny)], Mine) {
                             neighbors += 1;
                         }
                     }
                 }
             }
 
-            grid[idx(x, y)] = CellType::Safe(neighbors);
+            grid[idx(x, y)] = Air(neighbors);
         }
     }
 
@@ -82,53 +95,79 @@ pub fn spawn_grid(
         let transform_x = x as f32 * step - offset_x;
         let transform_y = y as f32 * step - offset_y;
 
-        let entity = commands.spawn((
-            match cell {
-                CellType::Bomb => Cell {
-                    x,
-                    y,
-                    has_mine: true,
-                    neighbor_mines: 0,
-                    revealed: false,
-                    flagged: false
-                },
-                CellType::Safe(neighbor_mines) => Cell {
-                    x,
-                    y,
-                    has_mine: false,
-                    neighbor_mines: *neighbor_mines,
-                    revealed: false,
-                    flagged: false
-                },
-            },
-            Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
-            Visibility::Visible,
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                Sprite {
-                    image: border_texture.clone(),
-                    texture_atlas: Some(layout_handle.clone().into()),
-                    ..Default::default()
-                },
-                Transform::default(),
-                Visibility::Visible,
-                CellBorder,
-            ));
+        // let entity = commands.spawn((
+        //     match cell {
+        //         CellType::Mine => (
+        //             Position::new(x, y),
+        //             Cell,
+        //             Mine
+        //         ),
+        //         CellType::Wall => (
+        //             Position::new(x, y),
+        //             Cell,
+        //             Wall
+        //         ),
 
-            parent.spawn((
-                Sprite {
-                    image: flag_texture.clone(),
-                    texture_atlas: Some(layout_handle.clone().into()),
-                    color: Color::linear_rgb(1.0, 0.0, 0.0),
-                    ..Default::default()
+        //         CellType::Air(_) => todo!(),
+        //     },
+        //     Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
+        //     Visibility::Visible,
+        // ))
+        let entity = 
+            match cell {
+                CellType::Mine => {
+                    commands.spawn((
+                        Position::new(x, y),
+                        Cell,
+                        Mine,
+                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
+                        Visibility::Visible,
+                    ))
                 },
-                Transform::default(),
-                Visibility::Hidden,
-                CellContent,
-            ));
-        })
-        .id();
+                CellType::Wall => {
+                    commands.spawn((
+                        Position::new(x, y),
+                        Cell,
+                        Wall,
+                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
+                        Visibility::Visible,
+                    ))
+                },
+                CellType::Air(neighbors) => {
+                    commands.spawn((
+                        Position::new(x, y),
+                        Cell,
+                        Air { neighbor_mines: *neighbors, revealed: false },
+                        Transform::from_translation(Vec3::new(transform_x, transform_y, 0.0)),
+                        Visibility::Visible,
+                    ))
+                }
+            }
+            .with_children(|parent| {
+                parent.spawn((
+                    Sprite {
+                        image: border_texture.clone(),
+                        texture_atlas: Some(layout_handle.clone().into()),
+                        ..Default::default()
+                    },
+                    Transform::default(),
+                    Visibility::Visible,
+                    CellBorder,
+                ));
+
+                parent.spawn((
+                    Sprite {
+                        image: flag_texture.clone(),
+                        texture_atlas: Some(layout_handle.clone().into()),
+                        color: Color::linear_rgb(1.0, 0.0, 0.0),
+                        ..Default::default()
+                    },
+                    Transform::default(),
+                    Visibility::Hidden,
+                    CellContent,
+                ));
+            })
+            .id();
 
         grid.insert(x, y, entity);
     }

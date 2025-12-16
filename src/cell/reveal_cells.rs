@@ -1,23 +1,42 @@
 use bevy::prelude::*;
-use crate::cell::*;
+use crate::cell::{toggle_flag::{get_cursor_position, world_to_cell}, *};
+
+pub struct RevealCellPlugin;
+impl Plugin for RevealCellPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_message::<RevealCell>()
+            .add_message::<UpdateSprite>()
+            .add_systems(Update, (update_sprite, reveal_cell, handle_reveal_click))
+        ;
+    }
+}
 
 #[derive(Message)]
-pub struct RevealCellMessage {
+struct RevealCell {
     pub x: u32,
     pub y: u32
 }
 
-pub fn reveal_cell(
+#[derive(Message)]
+struct UpdateSprite {
+    pub entity: Entity
+}
+
+
+/// Reads messages from UpdateSprite.
+/// Updates the visual of that cell to match the revealed version.
+/// Ie: will display the correct number for neighboring mines.
+/// If there are 0 neighboring mines, the border and content sprites are despawned.
+fn update_sprite(
     mut commands: Commands,
-
+    mut reader: MessageReader<UpdateSprite>,
     asset_server: Res<AssetServer>,
-    grid: Res<Grid>,
-    children_q: Query<&Children>,
-
-    mut reader: MessageReader<RevealCellMessage>,
-    mut cells: Query<&mut Cell>,
+    
+    cells: Query<&Air>,
+    children: Query<&Children>,
     mut content_sprites: Query<(&mut Visibility, &mut Sprite), With<CellContent>>,
-    border_sprites: Query<&CellBorder>
+    mut border_sprites: Query<(), With<CellBorder>>
 ) {
     let textures = [
         asset_server.load("one.png"),
@@ -41,10 +60,49 @@ pub fn reveal_cell(
         Color::linear_rgb(226.0 / 255.0, 181.0 / 255.0, 23.0 / 255.0),
         Color::linear_rgb(177.0 / 255.0, 70.0 / 255.0, 193.0 / 255.0),
     ];
+    
+    for UpdateSprite { entity} in reader.read() {
+        // Make sure the entity has the air component (only air cells can be revealed)  
+        let Ok(&Air { neighbor_mines, .. }) = cells.get(*entity) else { panic!("UpdateSprite message sent with invalid entity (Did not have the air componnet).") };
+
+        // Get children of the entity
+        let Ok(children) = children.get(*entity) else { panic!("UpdateSprite message sent with an invalid cell entity (Had no children).") };
+        for &child in children {
+            // Is content sprite
+            if let Ok((mut visibility, mut sprite)) = content_sprites.get_mut(child) {
+                if neighbor_mines == 0 {
+                    commands.entity(child).despawn();
+                } else {
+                    *visibility = Visibility::Visible;
+                    sprite.image = textures[neighbor_mines as usize - 1].clone();
+                    sprite.color = texture_colors[neighbor_mines as usize - 1];
+                }
+            }
+
+            // Is border sprite
+            if let Ok(_) = border_sprites.get_mut(child) {
+                if neighbor_mines == 0 {
+                    commands.entity(child).despawn();
+                }
+            }
+        }
+    }
+}
+
+/// Reads messages from RevealCell. 
+/// If the cell is an air cell, reveals that cell. If the cell has 0 neighbors, reveals all neighboring cells.
+/// Sends the UpdateSprite message, which will update the visual look of every revealed cell.
+fn reveal_cell(
+    grid: Res<Grid>,
+    mut reader: MessageReader<RevealCell>,
+    mut writer: MessageWriter<UpdateSprite>,
+
+    mut cells: Query<(Option<&mut Air>, Option<&Mine>, Option<&Wall>, Option<&Flagged>), With<Cell>>,
+) {
 
     let mut queue = Vec::new();
 
-    for RevealCellMessage { x, y } in reader.read() {
+    for RevealCell { x, y } in reader.read() {
         queue.push((*x, *y));
     }  
 
@@ -54,70 +112,52 @@ pub fn reveal_cell(
         i += 1;
 
         let Some(entity) = grid.cell_entity(x, y) else { continue };
-        let mut cell = match cells.get_mut(entity) {
+        let (air, mine, wall, flagged) = match cells.get_mut(entity) {
             Ok(cell) => cell,
             Err(_) => continue
         };
 
-        // If a cell is revealed, it can't be revealed again.
-        if cell.revealed { continue };
-        // If a cell is flagged, it can't be revelead.
-        if cell.flagged { continue };
-
-        if cell.has_mine {
-            println!("This is a mine!");
+        // A flagged cell can't be revealed || A wall cell can't be revealed
+        if flagged.is_some() || wall.is_some() {
             continue;
         }
-        
-        cell.revealed = true;
 
-        // Get the children of the entity
-        let children = match children_q.get(entity) {
-            Ok(children) => children,
-            Err(_) => continue, // entity has no children
-        };
+        // Handle air cell
+        if let Some(mut air) = air {
+            if air.revealed { continue }; // Cannot reveal a cell twice.
 
-        // Toggle visibility of the child sprites
-        for child in children.iter() {
-            // Content Sprite
-            if let Ok((mut visibility, mut sprite)) = content_sprites.get_mut(child) {
-                if cell.neighbor_mines == 0 {
-                    commands.entity(child).despawn();
+            air.revealed = true;
+            writer.write(UpdateSprite { entity });
 
-                    // Reveal neighbors
-                    for dx in -1..=1 {
-                        for dy in -1..=1 {
-                            if dx == 0 && dy == 0 { continue };
-                            let rx = x as i32 + dx;
-                            let ry = y as i32 + dy;
+            if air.neighbor_mines == 0 {
+                // Reveal neighhbors
+                for dx in -1..=1 {
+                    for dy in -1..=1 {
+                        if dx == 0 && dy == 0 { continue };
+                        let rx = x as i32 + dx;
+                        let ry = y as i32 + dy;
 
-                            // Out of bounds
-                            if rx < 0 || ry < 0 || rx >= grid.width as i32 || ry >= grid.height as i32 { continue; }
+                        // Out of bounds
+                        if rx < 0 || ry < 0 || rx >= grid.width as i32 || ry >= grid.height as i32 { continue; }
 
-                            // Queue the neighbors
-                            queue.push((rx as u32, ry as u32));
-                        }
+                        // Queue the neighbors
+                        queue.push((rx as u32, ry as u32));
                     }
-                } else {
-                    *visibility = Visibility::Visible;
-                    sprite.image = textures[cell.neighbor_mines as usize - 1].clone();
-                    sprite.color = texture_colors[cell.neighbor_mines as usize - 1];
                 }
             }
 
-            // Border Sprite
-            if let Ok(_) = border_sprites.get(child) {
-                if cell.neighbor_mines == 0 {
-                    commands.entity(child).despawn();
-                }
-
-            }
+            continue;
         }
+
+        // Handle mine cell
+        if mine.is_some() {
+            println!("You revealed a mine - game over.");
+        }        
     }
 }
 
-pub fn handle_reveal_click(
-    mut events: MessageWriter<RevealCellMessage>,
+fn handle_reveal_click(
+    mut events: MessageWriter<RevealCell>,
     grid: Res<Grid>,
     input: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
@@ -129,5 +169,5 @@ pub fn handle_reveal_click(
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return; };
     let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return; };
-    events.write(RevealCellMessage { x: cx, y: cy });
+    events.write(RevealCell { x: cx, y: cy });
 }
