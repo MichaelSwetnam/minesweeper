@@ -1,6 +1,7 @@
 mod spawn_grid;
 mod reveal_cells;
 mod toggle_flag;
+mod cell_factory;
 
 use bevy::prelude::*;
 
@@ -16,40 +17,6 @@ impl Plugin for CellPlugin {
                 toggle_flag::toggle_flag
             );
     }
-}
-pub struct CellFactory;
-impl CellFactory {
-    pub fn spawn_mine(cmds: &mut Commands, x: u32, y: u32) -> Entity {
-        cmds.spawn((
-            Position::new(x, y),
-            Mine
-        ))
-        .id()
-    }
-
-    pub fn spawn_air(cmds: &mut Commands, x: u32, y: u32) -> Entity {
-        cmds.spawn((
-            Position::new(x, y),
-            Air::default()
-        ))
-        .id()
-    }
-
-    pub fn spawn_wall(cmds: &mut Commands, x: u32, y: u32) -> Entity {
-        cmds.spawn((
-            Position::new(x, y),
-            Wall
-        ))
-        .id()
-    }
-}
-
-
-#[derive(Debug, Clone)]
-pub enum CellKind {
-    Mine,
-    Air,
-    Wall
 }
 
 /** Cell Components */
