@@ -14,7 +14,7 @@ fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
 
 fn add_children(cmds: &mut EntityCommands<'_>, asset_server: &Res<AssetServer>) {
     cmds.with_children(|parent| {
-            parent.spawn((
+        parent.spawn((
             Sprite {
                 image: asset_server.load("cell_border.png"),
                 ..Default::default()
@@ -78,17 +78,19 @@ impl CellFactory {
     pub fn spawn_wall(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32) -> Entity {
         let (tx, ty) = transform(&grid, x, y);
 
-        let mut ec = cmds.spawn((
+        let entity = cmds.spawn((
             Position::new(x, y),
             Cell,
             Wall,
+            Sprite {
+                image: asset_server.load("wall.png"),
+                ..Default::default()
+            },
             Transform::from_translation(Vec3::new(tx, ty, 0.0)),
             Visibility::Visible
-        ));
+        ))
+        .id();
 
-        add_children(&mut ec, asset_server);
-
-        let entity = ec.id();
         grid.insert(x, y, entity);
         return entity;
     }

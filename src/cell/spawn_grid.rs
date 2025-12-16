@@ -28,8 +28,12 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
     // Insert bombs
     for x in 0..grid_settings.width {
         for y in 0..grid_settings.height {
-            if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
+            if x == 0 || y == 0 || x == grid_settings.width - 1 || y == grid_settings.height - 1 {
+                grid[idx(x, y)] = Wall;
+            } else if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
                 grid[idx(x, y)] = Mine;
+            } else if r.random::<f32>() < (grid_settings.wall_chance / 100.0) {
+                grid[idx(x, y)] = Wall;
             }
         }
     }

@@ -7,6 +7,7 @@ pub struct Grid {
     pub gap: u32,
     pub cell_size: u32,
     pub mine_chance: f32, // Percentage
+    pub wall_chance: f32,
     cells: Vec<Option<Entity>>
 }
 impl Grid {
@@ -36,6 +37,7 @@ impl Default for Grid {
             cell_size: 16,
             gap: 4,
             mine_chance: 12.3,
+            wall_chance: 12.3,
             cells: vec![None; (width * height) as usize] 
         }
     }
