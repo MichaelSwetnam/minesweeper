@@ -55,7 +55,7 @@ pub fn toggle_flag(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     children_q: Query<&Children>,
-    mut cells: Query<(Entity, Option<&Air>, Option<&Wall>, Option<&Flagged>), With<Cell>>,
+    mut cells: Query<(Entity, Option<&Air>, Option<&Wall>, Option<&Flagged>)>,
     mut content_sprites: Query<&mut Visibility, With<CellContent>>,
 ) {
     if !input.just_pressed(MouseButton::Right) {

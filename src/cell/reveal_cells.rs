@@ -97,7 +97,7 @@ fn reveal_cell(
     mut reader: MessageReader<RevealCell>,
     mut writer: MessageWriter<UpdateSprite>,
 
-    mut cells: Query<(Option<&mut Air>, Option<&Mine>, Option<&Wall>, Option<&Flagged>), With<Cell>>,
+    mut cells: Query<(Option<&mut Air>, Option<&Mine>, Option<&Wall>, Option<&Flagged>)>,
 ) {
 
     let mut queue = Vec::new();

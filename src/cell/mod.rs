@@ -21,25 +21,33 @@ impl Plugin for CellPlugin {
 
 /** Cell Components */
 
+// trait Cell {
+
+// }
+
 /// Mine cells are those which are mines in minesweeper. When revealed, they explode.
 /// They are flaggable.
 #[derive(Component)]
+// #[require(Cell)]
 pub struct Mine;
 
 /// Air cells are those which show information about surrounding mines. Think the 1, 2, 3, ... in typical minesweeper.
 /// They are flaggable.
 #[derive(Component, Default)]
+// #[require(Cell)]
+
 pub struct Air {
     neighbor_mines: u8,
     revealed: bool
 }
 
 #[derive(Component)]
+// #[require(Cell)]
 pub struct Wall;
 
 /// Marks cells which are "Cells." These are essentially blocks on the grid.
-#[derive(Component)]
-pub struct Cell;
+// #[derive(Component, Default)]
+// pub struct Cell;
 
 /** Other Components */
 

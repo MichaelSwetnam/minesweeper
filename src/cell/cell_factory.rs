@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
+use crate::{cell::{Air, CellBorder, CellContent, Mine, Wall}, grid::Grid};
 
 fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
     let step = grid.cell_size() as f32 + grid.gap() as f32;
@@ -43,7 +43,6 @@ impl CellFactory {
         let (tx, ty) = transform(grid, x, y);
 
         let mut ec = cmds.spawn((
-            Cell,
             Mine,
             Transform::from_translation(Vec3::new(tx, ty, 0.0)),
             Visibility::Visible
@@ -60,7 +59,6 @@ impl CellFactory {
         let (tx, ty) = transform(&grid, x, y);
 
         let mut ec = cmds.spawn((
-            Cell,
             Air { neighbor_mines, revealed: false },
             Transform::from_translation(Vec3::new(tx, ty, 0.0)),
             Visibility::Visible
@@ -77,7 +75,6 @@ impl CellFactory {
         let (tx, ty) = transform(&grid, x, y);
 
         let entity = cmds.spawn((
-            Cell,
             Wall,
             Sprite {
                 image: asset_server.load("wall.png"),
