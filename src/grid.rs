@@ -10,8 +10,7 @@ pub struct Grid {
     gap: u32,
     // Determines the size of a full cell. Currently cell_size + gap is the actual cell size.
     cell_size: u32,
-    pub mine_chance: f32, // Percentage
-    pub wall_chance: f32,
+    
     cells: Vec<Option<Entity>>
 }
 impl Grid {
@@ -46,8 +45,6 @@ impl Default for Grid {
             height,
             cell_size: 16,
             gap: 4,
-            mine_chance: 12.3,
-            wall_chance: 12.3,
             cells: vec![None; (width * height) as usize] 
         }
     }

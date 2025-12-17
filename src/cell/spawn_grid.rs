@@ -10,6 +10,10 @@ enum CellType {
     Wall
 }
 
+
+const MINE_CHANCE: f32 = 12.5;// Percentage
+const WALL_CHANCE: f32 = 12.5;
+
 /**
  * Returns a flattened X by Y 2d-vector.
  */
@@ -30,9 +34,9 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
         for y in 0..grid_settings.height() {
             if x == 0 || y == 0 || x == grid_settings.width() - 1 || y == grid_settings.height() - 1 {
                 grid[idx(x, y)] = Wall;
-            } else if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
+            } else if r.random::<f32>() < (MINE_CHANCE / 100.0) {
                 grid[idx(x, y)] = Mine;
-            } else if r.random::<f32>() < (grid_settings.wall_chance / 100.0) {
+            } else if r.random::<f32>() < (WALL_CHANCE / 100.0) {
                 grid[idx(x, y)] = Wall;
             }
         }
