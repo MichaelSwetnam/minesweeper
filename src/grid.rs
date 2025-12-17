@@ -6,8 +6,6 @@ pub struct Grid {
     width: u32,
     /// Height in cells
     height: u32,
-    // Gap used by mine cells with their borders. This should be removed shortly in favor for a better system of placing cells.
-    gap: u32,
     // Determines the size of a full cell. Currently cell_size + gap is the actual cell size.
     cell_size: u32,
     // Stores a cell's entity id by (x, y) in a flattened 2d vector.
@@ -21,7 +19,6 @@ impl Grid {
     /** Getters */
     pub fn width(&self) -> u32 { self.width }
     pub fn height(&self) -> u32 { self.height }
-    pub fn gap(&self) -> u32 { self.gap }
     pub fn cell_size(&self) -> u32 { self.cell_size }
 
     pub fn get(&self, x: u32, y: u32) -> Option<Entity> {
@@ -43,8 +40,7 @@ impl Default for Grid {
          Self {
             width,
             height,
-            cell_size: 16,
-            gap: 4,
+            cell_size: 20,
             cells: vec![None; (width * height) as usize] 
         }
     }

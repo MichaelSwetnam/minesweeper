@@ -3,6 +3,8 @@ mod reveal_cells;
 mod toggle_flag;
 mod cell_factory;
 
+use std::ops::Deref;
+
 use bevy::prelude::*;
 
 use crate::{cell::reveal_cells::RevealCellPlugin, grid::Grid};
@@ -21,29 +23,63 @@ impl Plugin for CellPlugin {
 
 /** Cell Components */
 
-// trait Cell {
-
+// fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
+//     
 // }
+
+const STANDARD_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
+pub trait Cell {
+    fn size() -> u32;
+
+    fn transform<'a, T>(grid: &T, x: u32, y: u32, z: f32) -> Transform
+    where T : Deref<Target = Grid>
+    {
+        let cell_size = grid.cell_size();
+        let sprite_size = Self::size();
+
+        if sprite_size > cell_size { panic!("Cell::size ({}) exceeds grid cell_size ({})! Must fit inside.", sprite_size, cell_size ) };
+
+        let gap = cell_size - sprite_size;
+        let offset_x = (grid.width() * cell_size) as f32 / 2.0;
+        let offset_y = (grid.height() * cell_size) as f32 / 2.0;
+
+        Transform {
+            translation: Vec3::new(
+                x as f32 * cell_size as f32 - offset_x + gap as f32 / 2.0,
+                y as f32 * cell_size as f32 - offset_y + gap as f32 / 2.0,
+                z,
+            ),
+            scale: STANDARD_SCALE,
+            ..Default::default()
+        }
+    }
+}
 
 /// Mine cells are those which are mines in minesweeper. When revealed, they explode.
 /// They are flaggable.
 #[derive(Component)]
-// #[require(Cell)]
 pub struct Mine;
+impl Cell for Mine {
+    fn size() -> u32 { 16 }
+}
 
 /// Air cells are those which show information about surrounding mines. Think the 1, 2, 3, ... in typical minesweeper.
 /// They are flaggable.
 #[derive(Component, Default)]
-// #[require(Cell)]
 
 pub struct Air {
     neighbor_mines: u8,
     revealed: bool
 }
+impl Cell for Air {
+    fn size() -> u32 { 16 }
+}
 
 #[derive(Component)]
-// #[require(Cell)]
 pub struct Wall;
+impl Cell for Wall {
+    fn size() -> u32 { 16 }
+}
 
 /// Marks cells which are "Cells." These are essentially blocks on the grid.
 // #[derive(Component, Default)]

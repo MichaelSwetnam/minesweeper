@@ -1,16 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, CellBorder, CellContent, Mine, Wall}, grid::Grid};
-
-fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
-    let step = grid.cell_size() as f32 + grid.gap() as f32;
-    let offset_x = (grid.width() as f32 * step) / 2.0;
-    let offset_y = (grid.height() as f32 * step) / 2.0;
-
-    return (
-        x as f32 * step - offset_x,
-        y as f32 * step - offset_y
-    );
-}
+use crate::{cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
 
 fn add_children(cmds: &mut EntityCommands<'_>, asset_server: &Res<AssetServer>) {
     cmds.with_children(|parent| {
@@ -40,11 +29,9 @@ fn add_children(cmds: &mut EntityCommands<'_>, asset_server: &Res<AssetServer>) 
 pub struct CellFactory;
 impl CellFactory {
     pub fn spawn_mine(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32) -> Entity {
-        let (tx, ty) = transform(grid, x, y);
-
         let mut ec = cmds.spawn((
             Mine,
-            Transform::from_translation(Vec3::new(tx, ty, 0.0)),
+            Mine::transform(grid, x, y, 1.0),
             Visibility::Visible
         ));
 
@@ -56,11 +43,9 @@ impl CellFactory {
     }
 
     pub fn spawn_air(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32, neighbor_mines: u8) -> Entity {
-        let (tx, ty) = transform(&grid, x, y);
-
         let mut ec = cmds.spawn((
             Air { neighbor_mines, revealed: false },
-            Transform::from_translation(Vec3::new(tx, ty, 0.0)),
+            Air::transform(grid, x, y, 1.0),
             Visibility::Visible
         ));
 
@@ -72,15 +57,13 @@ impl CellFactory {
     }
 
     pub fn spawn_wall(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32) -> Entity {
-        let (tx, ty) = transform(&grid, x, y);
-
         let entity = cmds.spawn((
             Wall,
             Sprite {
                 image: asset_server.load("wall.png"),
                 ..Default::default()
             },
-            Transform::from_translation(Vec3::new(tx, ty, 0.0)),
+            Wall::transform(grid, x, y, 1.0),
             Visibility::Visible
         ))
         .id();

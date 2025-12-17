@@ -18,33 +18,22 @@ pub fn get_cursor_position(
 
 pub fn world_to_cell(pos: Vec2, grid: &Grid) -> Option<(u32, u32)> {
     let cell = grid.cell_size() as f32;
-    let gap = grid.gap() as f32;
-    let step = cell + gap;
 
     // Centers of cells are at x*step - offset_x, y*step - offset_y
-    let offset_x = (grid.width() as f32) * step * 0.5;
-    let offset_y = (grid.height() as f32) * step * 0.5;
+    let offset_x = (grid.width() as f32) * cell * 0.5;
+    let offset_y = (grid.height() as f32) * cell * 0.5;
 
     // Find the nearest cell center by rounding to the closest step index
-    let ix = ((pos.x + offset_x) / step).round() as i32;
-    let iy = ((pos.y + offset_y) / step).round() as i32;
+    let ix = ((pos.x + offset_x) / cell).round() as i32;
+    let iy = ((pos.y + offset_y) / cell).round() as i32;
 
     // Bounds check
     if ix < 0 || ix >= grid.width() as i32 || iy < 0 || iy >= grid.height() as i32 {
         return None;
     }
 
-    // Compute the center of the chosen cell
-    let cx = (ix as f32) * step - offset_x;
-    let cy = (iy as f32) * step - offset_y;
-
     // Check if the click is within the 16x16 sprite (cell area), not in the gap
-    let half = cell * 0.5;
-    if (pos.x - cx).abs() <= half && (pos.y - cy).abs() <= half {
-        Some((ix as u32, iy as u32))
-    } else {
-        None
-    }
+    Some((ix as u32, iy as u32))
 }
 
 pub fn toggle_flag(
