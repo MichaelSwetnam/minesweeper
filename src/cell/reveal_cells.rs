@@ -111,7 +111,7 @@ fn reveal_cell(
         let (x, y) = queue[i];
         i += 1;
 
-        let Some(entity) = grid.cell_entity(x, y) else { continue };
+        let Some(entity) = grid.get(x, y) else { continue };
         let (air, mine, wall, flagged) = match cells.get_mut(entity) {
             Ok(cell) => cell,
             Err(_) => continue

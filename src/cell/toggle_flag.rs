@@ -64,7 +64,7 @@ pub fn toggle_flag(
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return };
     let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return };
-    let Some(cell_entity) = grid.cell_entity(cx, cy) else { return };
+    let Some(cell_entity) = grid.get(cx, cy) else { return };
 
     let (entity, air, wall, flagged) = match cells.get_mut(cell_entity) {
         Ok(cell) => cell,

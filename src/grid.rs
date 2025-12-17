@@ -10,7 +10,7 @@ pub struct Grid {
     gap: u32,
     // Determines the size of a full cell. Currently cell_size + gap is the actual cell size.
     cell_size: u32,
-    
+    // Stores a cell's entity id by (x, y) in a flattened 2d vector.
     cells: Vec<Option<Entity>>
 }
 impl Grid {
@@ -24,7 +24,7 @@ impl Grid {
     pub fn gap(&self) -> u32 { self.gap }
     pub fn cell_size(&self) -> u32 { self.cell_size }
 
-    pub fn cell_entity(&self, x: u32, y: u32) -> Option<Entity> {
+    pub fn get(&self, x: u32, y: u32) -> Option<Entity> {
         self.cells[self.index(x, y)]
     }
 
