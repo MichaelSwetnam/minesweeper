@@ -12,7 +12,7 @@ impl Plugin for PlayerPlugin {
 
 #[derive(Component)]
 #[require(Transform)]
-struct Player;
+pub struct Player;
 impl Player {
     fn new() -> impl Bundle {
         (

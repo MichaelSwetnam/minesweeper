@@ -2,8 +2,10 @@ use bevy::prelude::*;
 
 #[derive(Resource)]
 pub struct Grid {
-    pub width: u32,
-    pub height: u32,
+    /// Width in cells
+    width: u32,
+    /// Height in cells
+    height: u32,
     pub gap: u32,
     pub cell_size: u32,
     pub mine_chance: f32, // Percentage
@@ -14,6 +16,10 @@ impl Grid {
     fn index(&self, x: u32, y: u32) -> usize {
         (y as usize * self.width as usize) + x as usize
     }
+
+    /** Getters */
+    pub fn width(&self) -> u32 { self.width }
+    pub fn height(&self) -> u32 { self.height }
 
     pub fn cell_entity(&self, x: u32, y: u32) -> Option<Entity> {
         self.cells[self.index(x, y)]

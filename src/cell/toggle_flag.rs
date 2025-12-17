@@ -22,15 +22,15 @@ pub fn world_to_cell(pos: Vec2, grid: &Grid) -> Option<(u32, u32)> {
     let step = cell + gap;
 
     // Centers of cells are at x*step - offset_x, y*step - offset_y
-    let offset_x = (grid.width as f32) * step * 0.5;
-    let offset_y = (grid.height as f32) * step * 0.5;
+    let offset_x = (grid.width() as f32) * step * 0.5;
+    let offset_y = (grid.height() as f32) * step * 0.5;
 
     // Find the nearest cell center by rounding to the closest step index
     let ix = ((pos.x + offset_x) / step).round() as i32;
     let iy = ((pos.y + offset_y) / step).round() as i32;
 
     // Bounds check
-    if ix < 0 || ix >= grid.width as i32 || iy < 0 || iy >= grid.height as i32 {
+    if ix < 0 || ix >= grid.width() as i32 || iy < 0 || iy >= grid.height() as i32 {
         return None;
     }
 

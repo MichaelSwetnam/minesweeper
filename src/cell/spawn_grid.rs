@@ -18,17 +18,17 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
 
     // Helper fx
     let idx = |x: u32, y: u32| -> usize {
-        (y as usize * grid_settings.width as usize) + x as usize
+        (y as usize * grid_settings.width() as usize) + x as usize
     };
 
     // Flattened width by height 2d array
-    let mut grid: Vec<CellType> = vec![Air(0); (grid_settings.width * grid_settings.height) as usize];
+    let mut grid: Vec<CellType> = vec![Air(0); (grid_settings.width() * grid_settings.height()) as usize];
     let mut r = rand::rng();
 
     // Insert bombs
-    for x in 0..grid_settings.width {
-        for y in 0..grid_settings.height {
-            if x == 0 || y == 0 || x == grid_settings.width - 1 || y == grid_settings.height - 1 {
+    for x in 0..grid_settings.width() {
+        for y in 0..grid_settings.height() {
+            if x == 0 || y == 0 || x == grid_settings.width() - 1 || y == grid_settings.height() - 1 {
                 grid[idx(x, y)] = Wall;
             } else if r.random::<f32>() < (grid_settings.mine_chance / 100.0) {
                 grid[idx(x, y)] = Mine;
@@ -39,8 +39,8 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
     }
 
     // Calculate number of surrounding bombs.
-    for x in 0..grid_settings.width {
-        for y in 0..grid_settings.height {
+    for x in 0..grid_settings.width() {
+        for y in 0..grid_settings.height() {
             // Select only air elements
             let Air(_) = grid[idx(x, y)] else { continue };
         
@@ -56,7 +56,7 @@ fn generate_grid(grid_settings: &Grid) -> Vec<CellType> {
                     let Some(nx) = x.checked_add_signed(dx) else { continue };
                     let Some(ny) = y.checked_add_signed(dy) else { continue };
 
-                    if nx < grid_settings.width && ny < grid_settings.height {
+                    if nx < grid_settings.width() && ny < grid_settings.height() {
                         if matches!(grid[idx(nx, ny)], Mine) {
                             neighbors += 1;
                         }
@@ -78,8 +78,8 @@ pub fn spawn_grid(
 ) {
     let grid_cells = generate_grid(&grid);
     for (index, cell) in grid_cells.iter().enumerate() {
-        let x = index as u32 % grid.width;
-        let y = index as u32 / grid.width;
+        let x = index as u32 % grid.width();
+        let y = index as u32 / grid.width();
 
         match cell {
             CellType::Air(n) => CellFactory::spawn_air(&mut commands, &mut grid, &asset_server, x, y, *n),
