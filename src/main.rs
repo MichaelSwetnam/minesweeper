@@ -1,6 +1,7 @@
 mod camera;
 mod cell;
 mod grid;
+mod player;
 
 use bevy::prelude::*;
 
@@ -15,7 +16,7 @@ fn main() {
             .set(ImagePlugin::default_nearest())    
         )
         .add_plugins(
-            (camera::CameraPlugin, cell::CellPlugin)
+            (camera::CameraPlugin, cell::CellPlugin, player::PlayerPlugin)
         )
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(grid)

@@ -5,9 +5,7 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app
         .add_systems(Startup, spawn_camera)
-        .add_systems(Update, (
-            scroll_events, movement
-        ));
+        .add_systems(Update, scroll_events);
     }
 }
 
@@ -44,35 +42,5 @@ fn scroll_events(
             ortho.scale *= 1.0 - ev.y * unit_scale;
             ortho.scale = ortho.scale.max(min_scale);
         }
-    }
-}
-
-fn movement(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
-     mut query: Query<(&mut Transform, &Projection), With<Camera>>,
-) {
-    let (mut transform, projection) = query.single_mut().unwrap();
-
-    // Movement speed in world units per second
-    let base_speed = 500.0; // Pixels
-
-    // Speed relative to zoom level
-    let mut speed = base_speed * time.delta_secs();
-    if let Projection::Orthographic(ortho) = projection {
-        speed *= ortho.scale;
-    }
-
-    if keyboard.pressed(KeyCode::ArrowLeft) || keyboard.pressed(KeyCode::KeyA) {
-        transform.translation.x -= speed;
-    }
-    if keyboard.pressed(KeyCode::ArrowRight) || keyboard.pressed(KeyCode::KeyD) {
-        transform.translation.x += speed;
-    }
-    if keyboard.pressed(KeyCode::ArrowUp) || keyboard.pressed(KeyCode::KeyW) {
-        transform.translation.y += speed;
-    }
-    if keyboard.pressed(KeyCode::ArrowDown) || keyboard.pressed(KeyCode::KeyS) {
-        transform.translation.y -= speed;
     }
 }
