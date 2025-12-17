@@ -5,7 +5,7 @@ mod cell_factory;
 
 use bevy::prelude::*;
 
-use crate::{Position, cell::reveal_cells::RevealCellPlugin, grid::Grid};
+use crate::{cell::reveal_cells::RevealCellPlugin, grid::Grid};
 
 pub struct CellPlugin;
 impl Plugin for CellPlugin {
@@ -34,7 +34,6 @@ pub struct Air {
 pub struct Wall;
 
 #[derive(Component)]
-#[require(Position)]
 pub struct Cell;
 
 #[derive(Component)]
