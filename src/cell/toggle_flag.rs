@@ -17,8 +17,8 @@ pub fn get_cursor_position(
 }
 
 pub fn world_to_cell(pos: Vec2, grid: &Grid) -> Option<(u32, u32)> {
-    let cell = grid.cell_size as f32;
-    let gap = grid.gap as f32;
+    let cell = grid.cell_size() as f32;
+    let gap = grid.gap() as f32;
     let step = cell + gap;
 
     // Centers of cells are at x*step - offset_x, y*step - offset_y

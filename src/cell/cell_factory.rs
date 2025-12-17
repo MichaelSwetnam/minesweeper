@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::{cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
 
 fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
-    let step = grid.cell_size as f32 + grid.gap as f32;
+    let step = grid.cell_size() as f32 + grid.gap() as f32;
     let offset_x = (grid.width() as f32 * step) / 2.0;
     let offset_y = (grid.height() as f32 * step) / 2.0;
 
