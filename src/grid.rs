@@ -1,10 +1,10 @@
 use bevy::{platform::collections::HashMap, prelude::*};
 use std::sync::LazyLock;
 
-use crate::env::acquire_num;
+use crate::env::{EnvVariable, acquire_num};
 
-static CHUNK_WIDTH: LazyLock<usize> = LazyLock::new(|| acquire_num("CHUNK_WIDTH"));
-static CHUNK_HEIGHT: LazyLock<usize> = LazyLock::new(|| acquire_num("CHUNK_HEIGHT"));
+static CHUNK_WIDTH: LazyLock<usize> = LazyLock::new(|| acquire_num(EnvVariable::CHUNK_WIDTH));
+static CHUNK_HEIGHT: LazyLock<usize> = LazyLock::new(|| acquire_num(EnvVariable::CHUNK_HEIGHT));
 
 pub struct Chunk {
     // cells: [Option<Entity>; CHUNK_WIDTH * CHUNK_HEIGHT]
@@ -90,7 +90,7 @@ impl Grid {
     
 }
 
-const CELL_SIZE: LazyLock<u32> = LazyLock::new(|| acquire_num("CELL_SIZE"));
+const CELL_SIZE: LazyLock<u32> = LazyLock::new(|| acquire_num(EnvVariable::CELL_SIZE));
 impl Default for Grid {
     fn default() -> Self {
         let width = 16;

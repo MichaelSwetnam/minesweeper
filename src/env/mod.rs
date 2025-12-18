@@ -1,13 +1,16 @@
+mod vars;
+pub use vars::EnvVariable;
+
 use std::{env, str::FromStr, fmt::Debug};
 
-pub fn acquire_string(name: &'static str) -> String {
-    env::var(name).expect(&format!("Expected environment variable '{}' which was not set.", name))
+pub fn acquire_string(var: &EnvVariable) -> String {
+    env::var(var.as_ref()).expect(&format!("Expected environment variable '{}' which was not set.", var.as_ref()))
 }
 
-pub fn acquire_num<T>(name: &'static str) -> T
+pub fn acquire_num<T>(var: EnvVariable) -> T
 where
     T: FromStr,
     T::Err: Debug
 {
-    acquire_string(name).parse::<T>().expect(&format!("Expected environment variable '{name}' to be a parsable u32"))
+    acquire_string(&var).parse::<T>().expect(&format!("Expected environment variable '{}' to be a parsable u32", var.as_ref()))
 }
