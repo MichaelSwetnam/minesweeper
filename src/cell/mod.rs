@@ -19,8 +19,6 @@ impl Plugin for CellPlugin {
     }
 }
 
-
-const STANDARD_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 pub trait CellBehavior {
     fn size() -> u32;
 
@@ -36,7 +34,7 @@ pub trait CellBehavior {
                 y as f32 * cell_size as f32,
                 z,
             ),
-            scale: STANDARD_SCALE,
+            scale: Vec3::new(grid.scale(), grid.scale(), 1.0),
             ..Default::default()
         }
     }

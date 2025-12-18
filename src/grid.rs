@@ -41,8 +41,10 @@ pub struct Grid {
     width: u32,
     /// Height in cells
     height: u32,
-    // Determines the size of a full cell. Currently cell_size + gap is the actual cell size.
+    // The size of a full cell. The scaling is included in this number.
     cell_size: u32,
+    // How much every cell is scaled up from it's original texture.
+    scale: f32,
     chunks: HashMap<(i32, i32), Chunk>
 }
 impl Grid {
@@ -50,7 +52,8 @@ impl Grid {
     pub fn width(&self) -> u32 { self.width }
     pub fn height(&self) -> u32 { self.height }
     pub fn cell_size(&self) -> u32 { self.cell_size }
-    
+    pub fn scale(&self) -> f32 { self.scale }
+
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
         let cx = x / *CHUNK_WIDTH as i32;
         let cy = y / *CHUNK_HEIGHT as i32;
@@ -91,6 +94,7 @@ impl Grid {
 }
 
 const CELL_SIZE: LazyLock<u32> = LazyLock::new(|| acquire_num(EnvVariable::CELL_SIZE));
+const CELL_SCALE: LazyLock<f32> = LazyLock::new(|| acquire_num(EnvVariable::CELL_SCALE));
 impl Default for Grid {
     fn default() -> Self {
         let width = 16;
@@ -99,7 +103,8 @@ impl Default for Grid {
          Self {
             width,
             height,
-            cell_size: *CELL_SIZE,
+            cell_size: (*CELL_SIZE as f32 * *CELL_SCALE).floor() as u32,
+            scale: *CELL_SCALE,
             chunks: HashMap::new()
         }
     }

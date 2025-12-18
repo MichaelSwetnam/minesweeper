@@ -5,5 +5,6 @@ use strum_macros::AsRefStr;
 pub enum EnvVariable {
     CHUNK_WIDTH,
     CHUNK_HEIGHT,
-    CELL_SIZE
+    CELL_SIZE,
+    CELL_SCALE
 }
