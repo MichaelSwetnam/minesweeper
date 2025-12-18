@@ -46,7 +46,6 @@ pub struct Grid {
     chunks: HashMap<(i32, i32), Chunk>
 }
 impl Grid {
-
     /** Getters */
     pub fn width(&self) -> u32 { self.width }
     pub fn height(&self) -> u32 { self.height }
@@ -90,6 +89,8 @@ impl Grid {
     }
     
 }
+
+const CELL_SIZE: LazyLock<u32> = LazyLock::new(|| acquire_num("CELL_SIZE"));
 impl Default for Grid {
     fn default() -> Self {
         let width = 16;
@@ -98,7 +99,7 @@ impl Default for Grid {
          Self {
             width,
             height,
-            cell_size: 20,
+            cell_size: *CELL_SIZE,
             chunks: HashMap::new()
         }
     }
