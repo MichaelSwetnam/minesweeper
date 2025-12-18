@@ -1,4 +1,8 @@
+use std::sync::LazyLock;
+
 use bevy::prelude::*;
+
+use crate::{env::{EnvVariable, acquire_num}, grid::Grid};
 
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
@@ -38,20 +42,19 @@ fn spawn_player(
 }
 
 
+const PLAYER_SPEED: LazyLock<f32> = LazyLock::new(|| acquire_num(EnvVariable::PLAYER_SPEED));
 fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
+    grid: Res<Grid>,
     mut query: Query<&mut Transform, (With<Camera>, Without<Player>)>,
     mut players: Query<&mut Transform, (With<Player>, Without<Camera>)>
 ) {
     let mut player_transform = players.single_mut().unwrap();
     let mut camera_transform = query.single_mut().unwrap();
 
-    // Movement speed in world units per second
-    let base_speed = 40.0; // Pixels
-
     // Speed relative to zoom level
-    let speed = base_speed * time.delta_secs();
+    let speed = *PLAYER_SPEED * (grid.cell_size() as f32) * time.delta_secs();
 
     if keyboard.pressed(KeyCode::ArrowLeft) || keyboard.pressed(KeyCode::KeyA) {
         camera_transform.translation.x -= speed;
