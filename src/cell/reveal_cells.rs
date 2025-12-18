@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, Cell, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid, player::Player};
+use crate::{cell::{Air, Cell, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::get_cursor_position}, grid::Grid, player::Player};
 
 pub struct RevealCellPlugin;
 impl Plugin for RevealCellPlugin {
@@ -168,8 +168,8 @@ fn handle_reveal_click(
     }
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return; };
-    let (x, y) = world_to_cell(world_pos, &grid);
-    events.write(RevealCell { x, y });
+    let block_pos = grid.cell_from_world(world_pos);
+    events.write(RevealCell { x: block_pos.x, y: block_pos.y });
 }
 
 fn player_reveals_cells(

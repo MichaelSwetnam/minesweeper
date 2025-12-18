@@ -73,6 +73,15 @@ impl Grid {
         let chunk = self.chunks.get_mut(&(cx, cy)).unwrap();
         chunk.insert(lx, ly, entity);
     }
+
+    pub fn pos_from_world(&self, pos: Vec2) -> Vec2 {
+        Vec2::new(pos.x / self.cell_size() as f32, pos.y / self.cell_size() as f32)
+    }
+    pub fn cell_from_world(&self, pos: Vec2) -> IVec2 {
+        let pos = self.pos_from_world(pos).round();
+        IVec2::new(pos.x as i32, pos.y as i32)
+    }
+    
 }
 impl Default for Grid {
     fn default() -> Self {

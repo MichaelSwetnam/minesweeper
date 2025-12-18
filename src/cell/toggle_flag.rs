@@ -16,15 +16,6 @@ pub fn get_cursor_position(
     })
 }
 
-pub fn world_to_cell(pos: Vec2, grid: &Grid) -> (i32, i32) {
-    let cell = grid.cell_size() as f32;
-    (
-        (pos.x / cell).round() as i32,
-        (pos.y / cell).round() as i32
-    )
-}
-
-
 pub fn toggle_flag(
     grid: Res<Grid>,
     input: Res<ButtonInput<MouseButton>>,
@@ -41,8 +32,8 @@ pub fn toggle_flag(
     }
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return };
-    let (cx, cy) = world_to_cell(world_pos, &grid);
-    let Some(cell_entity) = grid.get(cx, cy) else { return };
+    let cell_pos = grid.cell_from_world(world_pos);
+    let Some(cell_entity) = grid.get(cell_pos.x, cell_pos.y) else { return };
 
     let (entity, air, wall, flagged) = match cells.get_mut(cell_entity) {
         Ok(cell) => cell,
