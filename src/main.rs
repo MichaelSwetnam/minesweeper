@@ -2,12 +2,15 @@ mod camera;
 mod cell;
 mod grid;
 mod player;
+mod env;
 
 use bevy::prelude::*;
 
 use crate::grid::Grid;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv()?;
+
     let grid = Grid::default();
     // grid.mine_chance = 25.0;
 
@@ -21,4 +24,6 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(grid)
         .run();
+
+    Ok(())
 }

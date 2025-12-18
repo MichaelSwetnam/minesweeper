@@ -1,17 +1,22 @@
 use bevy::{platform::collections::HashMap, prelude::*};
+use std::sync::LazyLock;
 
-const CHUNK_WIDTH: usize = 16;
-const CHUNK_HEIGHT: usize = 16;
+use crate::env::acquire_num;
+
+static CHUNK_WIDTH: LazyLock<usize> = LazyLock::new(|| acquire_num("CHUNK_WIDTH"));
+static CHUNK_HEIGHT: LazyLock<usize> = LazyLock::new(|| acquire_num("CHUNK_HEIGHT"));
+
 pub struct Chunk {
-    cells: [Option<Entity>; CHUNK_WIDTH * CHUNK_HEIGHT]
+    // cells: [Option<Entity>; CHUNK_WIDTH * CHUNK_HEIGHT]
+    cells: Vec<Option<Entity>>
 }
 impl Chunk {
     fn index(&self, x: u32, y: u32) -> usize {
-        (y as usize * CHUNK_WIDTH) + x as usize
+        (y as usize * *CHUNK_WIDTH) + x as usize
     }
 
     pub fn new() -> Self {
-        Self { cells: [None; CHUNK_WIDTH * CHUNK_HEIGHT] }
+        Self { cells: vec![None; *CHUNK_WIDTH * *CHUNK_HEIGHT] }
     }
 
     pub fn get(&self, x: u32, y: u32) -> Option<Entity> {
@@ -19,12 +24,14 @@ impl Chunk {
     }
 
     pub fn insert(&mut self, x: u32, y: u32, entity: Entity) {
-        self.cells[self.index(x, y)] = Some(entity);
+        let i = self.index(x, y);
+        self.cells[i] = Some(entity);
     }
 
     #[allow(dead_code)]
     pub fn delete(&mut self, x: u32, y: u32) {
-        self.cells[self.index(x, y)] = None;
+        let i = self.index(x, y);
+        self.cells[i] = None;
     }
 }
 
@@ -46,29 +53,29 @@ impl Grid {
     pub fn cell_size(&self) -> u32 { self.cell_size }
     
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
-        let cx = x / CHUNK_WIDTH as i32;
-        let cy = y / CHUNK_HEIGHT as i32;
+        let cx = x / *CHUNK_WIDTH as i32;
+        let cy = y / *CHUNK_HEIGHT as i32;
 
         if !self.chunks.contains_key(&(cx, cy)) { panic!("Attempted to reference a chunk which does not exist.") };
         
         // Local (x, y) within the chunk.
-        let lx = x.rem_euclid(CHUNK_WIDTH as i32) as u32;
-        let ly = y.rem_euclid(CHUNK_HEIGHT as i32) as u32;
+        let lx = x.rem_euclid(*CHUNK_WIDTH as i32) as u32;
+        let ly = y.rem_euclid(*CHUNK_HEIGHT as i32) as u32;
         
         self.chunks.get(&(cx, cy)).unwrap().get(lx, ly)
     }
 
     pub fn insert(&mut self, x: i32, y: i32, entity: Entity) {
-        let cx = x / CHUNK_WIDTH as i32;
-        let cy = y / CHUNK_HEIGHT as i32;
+        let cx = x / *CHUNK_WIDTH as i32;
+        let cy = y / *CHUNK_HEIGHT as i32;
 
         if !self.chunks.contains_key(&(cx, cy)) { 
             self.chunks.insert((cx, cy), Chunk::new());
         }
 
         // Local (x, y) within the chunk.
-        let lx = x.rem_euclid(CHUNK_WIDTH as i32) as u32;
-        let ly = y.rem_euclid(CHUNK_HEIGHT as i32) as u32;
+        let lx = x.rem_euclid(*CHUNK_WIDTH as i32) as u32;
+        let ly = y.rem_euclid(*CHUNK_HEIGHT as i32) as u32;
 
         let chunk = self.chunks.get_mut(&(cx, cy)).unwrap();
         chunk.insert(lx, ly, entity);

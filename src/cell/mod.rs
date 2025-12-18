@@ -29,13 +29,11 @@ pub trait CellBehavior {
         let cell_size = grid.cell_size();
         let sprite_size = Self::size();
         if sprite_size > cell_size { panic!("Cell::size ({}) exceeds grid cell_size ({})! Must fit inside.", sprite_size, cell_size ) };
-        
-        let gap = cell_size - sprite_size;
 
         Transform {
             translation: Vec3::new(
-                x as f32 * cell_size as f32 + gap as f32 / 2.0,
-                y as f32 * cell_size as f32 + gap as f32 / 2.0,
+                x as f32 * cell_size as f32,
+                y as f32 * cell_size as f32,
                 z,
             ),
             scale: STANDARD_SCALE,
