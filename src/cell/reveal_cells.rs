@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid, player::Player};
+use crate::{cell::{Air, Cell, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid, player::Player};
 
 pub struct RevealCellPlugin;
 impl Plugin for RevealCellPlugin {
@@ -178,7 +178,7 @@ fn player_reveals_cells(
     mut writer: MessageWriter<RevealCell>
 ) {
     let player = players.single().unwrap();
-    let (x, y) = world_to_cell(player.translation.xy(), &grid);
-    
-    writer.write(RevealCell { x, y });
+    for (x, y) in Cell::touched_by(player, &grid) {
+        writer.write(RevealCell { x, y });
+    }
 }

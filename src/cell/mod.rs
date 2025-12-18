@@ -3,8 +3,6 @@ mod reveal_cells;
 mod toggle_flag;
 mod cell_factory;
 
-use std::ops::Deref;
-
 use bevy::prelude::*;
 
 use crate::{cell::reveal_cells::RevealCellPlugin, grid::Grid};
@@ -26,8 +24,7 @@ const STANDARD_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 pub trait CellBehavior {
     fn size() -> u32;
 
-    fn transform<'a, T>(grid: &T, x: i32, y: i32, z: f32) -> Transform
-    where T : Deref<Target = Grid>
+    fn transform(grid: &Grid, x: i32, y: i32, z: f32) -> Transform
     {
         let cell_size = grid.cell_size();
         let sprite_size = Self::size();
@@ -47,14 +44,44 @@ pub trait CellBehavior {
     }
 }
 
+
+
+// fn cells_touched_by_transform(
+//     transform: &Transform,
+//     grid: &Grid,
+// ) -> Vec<(i32, i32)> {
+//     
+// }
+
 /** Cell */
 #[derive(Component, Default)]
 pub struct Cell;
 impl Cell {
-    // /// Example method to prove the concept.
-    // fn size<T : CellBehavior>() -> u32 {
-    //     T::size()
-    // }
+    fn touched_by(transform: &Transform, grid: &Grid) -> Vec<(i32, i32)> {
+        let half_w = transform.translation.x / 2.0;
+        let half_h = transform.translation.y / 2.0;
+
+        let min_x = transform.translation.x - half_w;
+        let max_x = transform.translation.x + half_w;
+        let min_y = transform.translation.y - half_h;
+        let max_y = transform.translation.y + half_h;
+
+        let cell = grid.cell_size() as f32;
+
+        let min_ix = (min_x / cell).floor() as i32;
+        let max_ix = (max_x / cell).floor() as i32;
+        let min_iy = (min_y / cell).floor() as i32;
+        let max_iy = (max_y / cell).floor() as i32;
+
+        let mut touched = Vec::new();
+        for ix in min_ix..=max_ix {
+            for iy in min_iy..=max_iy {
+                touched.push((ix, iy));
+            }
+        }
+
+        touched  
+    }
 }
 
 /** Types of Cells */
