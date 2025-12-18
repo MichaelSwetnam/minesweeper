@@ -21,14 +21,9 @@ impl Plugin for CellPlugin {
     }
 }
 
-/** Cell Components */
-
-// fn transform(grid: &ResMut<Grid>, x: u32, y: u32) -> (f32, f32) {
-//     
-// }
 
 const STANDARD_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
-pub trait Cell {
+pub trait CellBehavior {
     fn size() -> u32;
 
     fn transform<'a, T>(grid: &T, x: u32, y: u32, z: f32) -> Transform
@@ -55,29 +50,43 @@ pub trait Cell {
     }
 }
 
+/** Cell */
+#[derive(Component, Default)]
+pub struct Cell;
+impl Cell {
+    /// Example method to prove the concept.
+    fn size<T : CellBehavior>() -> u32 {
+        T::size()
+    }
+}
+
+/** Types of Cells */
+
 /// Mine cells are those which are mines in minesweeper. When revealed, they explode.
 /// They are flaggable.
 #[derive(Component)]
+#[require(Cell)]
 pub struct Mine;
-impl Cell for Mine {
+impl CellBehavior for Mine {
     fn size() -> u32 { 16 }
 }
 
 /// Air cells are those which show information about surrounding mines. Think the 1, 2, 3, ... in typical minesweeper.
 /// They are flaggable.
 #[derive(Component, Default)]
-
+#[require(Cell)]
 pub struct Air {
     neighbor_mines: u8,
     revealed: bool
 }
-impl Cell for Air {
+impl CellBehavior for Air {
     fn size() -> u32 { 16 }
 }
 
 #[derive(Component)]
+#[require(Cell)]
 pub struct Wall;
-impl Cell for Wall {
+impl CellBehavior for Wall {
     fn size() -> u32 { 16 }
 }
 

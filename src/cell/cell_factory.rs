@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, Cell, CellBorder, CellContent, Mine, Wall}, grid::Grid};
+use crate::{cell::{Air, CellBehavior, CellBorder, CellContent, Mine, Wall}, grid::Grid};
 
 fn add_children(cmds: &mut EntityCommands<'_>, asset_server: &Res<AssetServer>) {
     cmds.with_children(|parent| {
