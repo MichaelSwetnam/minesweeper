@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid};
+use crate::{cell::{Air, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid, player::Player};
 
 pub struct RevealCellPlugin;
 impl Plugin for RevealCellPlugin {
@@ -7,7 +7,7 @@ impl Plugin for RevealCellPlugin {
         app
             .add_message::<RevealCell>()
             .add_message::<UpdateSprite>()
-            .add_systems(Update, (update_sprite, reveal_cell, handle_reveal_click))
+            .add_systems(Update, (update_sprite, reveal_cell, handle_reveal_click, player_reveals_cells))
         ;
     }
 }
@@ -170,4 +170,15 @@ fn handle_reveal_click(
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return; };
     let (x, y) = world_to_cell(world_pos, &grid);
     events.write(RevealCell { x, y });
+}
+
+fn player_reveals_cells(
+    players: Query<&Transform, With<Player>>,
+    grid: Res<Grid>,
+    mut writer: MessageWriter<RevealCell>
+) {
+    let player = players.single().unwrap();
+    let (x, y) = world_to_cell(player.translation.xy(), &grid);
+    
+    writer.write(RevealCell { x, y });
 }
