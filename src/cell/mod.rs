@@ -57,30 +57,41 @@ pub trait CellBehavior {
 #[derive(Component, Default)]
 pub struct Cell;
 impl Cell {
+    /// Returns all grid cells overlapped by the given transform.
+    /// Assumes sprites are centered and each cell is exactly grid.cell_size() in world units.
     fn touched_by(transform: &Transform, grid: &Grid) -> Vec<(i32, i32)> {
-        let half_w = transform.translation.x / 2.0;
-        let half_h = transform.translation.y / 2.0;
+        let cell = grid.cell_size() as f32;
+        let half_cell = cell * 0.5;
 
+        // Player half extents in world units (scale is the final size)
+        let half_w = transform.scale.x * 0.5;
+        let half_h = transform.scale.y * 0.5;
+
+        // Player AABB in world space
         let min_x = transform.translation.x - half_w;
         let max_x = transform.translation.x + half_w;
         let min_y = transform.translation.y - half_h;
         let max_y = transform.translation.y + half_h;
 
-        let cell = grid.cell_size() as f32;
-
-        let min_ix = (min_x / cell).floor() as i32;
-        let max_ix = (max_x / cell).floor() as i32;
-        let min_iy = (min_y / cell).floor() as i32;
-        let max_iy = (max_y / cell).floor() as i32;
+        // For cell k centered at k*cell, span is [k*cell - half_cell, k*cell + half_cell].
+        // Overlap if: max_x >= k*cell - half_cell AND min_x <= k*cell + half_cell.
+        // Solve for k:
+        //   k >= (min_x - half_cell)/cell
+        //   k <= (max_x + half_cell)/cell
+        let min_ix = ((min_x - half_cell) / cell).ceil() as i32;
+        let max_ix = ((max_x + half_cell) / cell).floor() as i32;
+        let min_iy = ((min_y - half_cell) / cell).ceil() as i32;
+        let max_iy = ((max_y + half_cell) / cell).floor() as i32;
 
         let mut touched = Vec::new();
-        for ix in min_ix..=max_ix {
-            for iy in min_iy..=max_iy {
-                touched.push((ix, iy));
+        if min_ix <= max_ix && min_iy <= max_iy {
+            for ix in min_ix..=max_ix {
+                for iy in min_iy..=max_iy {
+                    touched.push((ix, iy));
+                }
             }
         }
-
-        touched  
+        touched
     }
 }
 
@@ -111,7 +122,7 @@ impl CellBehavior for Air {
 #[require(Cell)]
 pub struct Wall;
 impl CellBehavior for Wall {
-    fn size() -> u32 { 16 }
+    fn size() -> u32 { 20 }
 }
 
 /// Marks cells which are "Cells." These are essentially blocks on the grid.

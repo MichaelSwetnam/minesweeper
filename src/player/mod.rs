@@ -21,7 +21,11 @@ impl Player {
                 color: Color::WHITE,
                 ..Default::default()
             },
-            Transform::with_scale(Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)), Vec3::new(8.0, 16.0, 8.0)),
+            Transform {
+                translation: Vec3::new(0.0, 0.0, 2.0),
+                scale: Vec3::new(8.0, 16.0, 1.0),
+                ..Default::default()
+            },
             Visibility::Visible
         )
     }
