@@ -26,22 +26,19 @@ const STANDARD_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 pub trait CellBehavior {
     fn size() -> u32;
 
-    fn transform<'a, T>(grid: &T, x: u32, y: u32, z: f32) -> Transform
+    fn transform<'a, T>(grid: &T, x: i32, y: i32, z: f32) -> Transform
     where T : Deref<Target = Grid>
     {
         let cell_size = grid.cell_size();
         let sprite_size = Self::size();
-
         if sprite_size > cell_size { panic!("Cell::size ({}) exceeds grid cell_size ({})! Must fit inside.", sprite_size, cell_size ) };
-
+        
         let gap = cell_size - sprite_size;
-        let offset_x = (grid.width() * cell_size) as f32 / 2.0;
-        let offset_y = (grid.height() * cell_size) as f32 / 2.0;
 
         Transform {
             translation: Vec3::new(
-                x as f32 * cell_size as f32 - offset_x + gap as f32 / 2.0,
-                y as f32 * cell_size as f32 - offset_y + gap as f32 / 2.0,
+                x as f32 * cell_size as f32 + gap as f32 / 2.0,
+                y as f32 * cell_size as f32 + gap as f32 / 2.0,
                 z,
             ),
             scale: STANDARD_SCALE,
@@ -54,10 +51,10 @@ pub trait CellBehavior {
 #[derive(Component, Default)]
 pub struct Cell;
 impl Cell {
-    /// Example method to prove the concept.
-    fn size<T : CellBehavior>() -> u32 {
-        T::size()
-    }
+    // /// Example method to prove the concept.
+    // fn size<T : CellBehavior>() -> u32 {
+    //     T::size()
+    // }
 }
 
 /** Types of Cells */

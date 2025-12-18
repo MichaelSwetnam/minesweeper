@@ -28,7 +28,7 @@ fn add_children(cmds: &mut EntityCommands<'_>, asset_server: &Res<AssetServer>) 
 
 pub struct CellFactory;
 impl CellFactory {
-    pub fn spawn_mine(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32) -> Entity {
+    pub fn spawn_mine(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: i32, y: i32) -> Entity {
         let mut ec = cmds.spawn((
             Mine,
             Mine::transform(grid, x, y, 1.0),
@@ -42,7 +42,7 @@ impl CellFactory {
         return entity;
     }
 
-    pub fn spawn_air(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32, neighbor_mines: u8) -> Entity {
+    pub fn spawn_air(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: i32, y: i32, neighbor_mines: u8) -> Entity {
         let mut ec = cmds.spawn((
             Air { neighbor_mines, revealed: false },
             Air::transform(grid, x, y, 1.0),
@@ -56,7 +56,7 @@ impl CellFactory {
         return entity;
     }
 
-    pub fn spawn_wall(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: u32, y: u32) -> Entity {
+    pub fn spawn_wall(cmds: &mut Commands, grid: &mut ResMut<Grid>, asset_server: &Res<AssetServer>, x: i32, y: i32) -> Entity {
         let entity = cmds.spawn((
             Wall,
             Sprite {

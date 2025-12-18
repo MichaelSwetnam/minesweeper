@@ -16,25 +16,14 @@ pub fn get_cursor_position(
     })
 }
 
-pub fn world_to_cell(pos: Vec2, grid: &Grid) -> Option<(u32, u32)> {
+pub fn world_to_cell(pos: Vec2, grid: &Grid) -> (i32, i32) {
     let cell = grid.cell_size() as f32;
-
-    // Centers of cells are at x*step - offset_x, y*step - offset_y
-    let offset_x = (grid.width() as f32) * cell * 0.5;
-    let offset_y = (grid.height() as f32) * cell * 0.5;
-
-    // Find the nearest cell center by rounding to the closest step index
-    let ix = ((pos.x + offset_x) / cell).round() as i32;
-    let iy = ((pos.y + offset_y) / cell).round() as i32;
-
-    // Bounds check
-    if ix < 0 || ix >= grid.width() as i32 || iy < 0 || iy >= grid.height() as i32 {
-        return None;
-    }
-
-    // Check if the click is within the 16x16 sprite (cell area), not in the gap
-    Some((ix as u32, iy as u32))
+    (
+        (pos.x / cell).round() as i32,
+        (pos.y / cell).round() as i32
+    )
 }
+
 
 pub fn toggle_flag(
     grid: Res<Grid>,
@@ -52,7 +41,7 @@ pub fn toggle_flag(
     }
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return };
-    let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return };
+    let (cx, cy) = world_to_cell(world_pos, &grid);
     let Some(cell_entity) = grid.get(cx, cy) else { return };
 
     let (entity, air, wall, flagged) = match cells.get_mut(cell_entity) {

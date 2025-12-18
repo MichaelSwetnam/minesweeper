@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{toggle_flag::{get_cursor_position, world_to_cell}, *}, player::Player};
+use crate::{cell::{Air, CellBorder, CellContent, Flagged, Mine, Wall, toggle_flag::{get_cursor_position, world_to_cell}}, grid::Grid};
 
 pub struct RevealCellPlugin;
 impl Plugin for RevealCellPlugin {
@@ -7,15 +7,15 @@ impl Plugin for RevealCellPlugin {
         app
             .add_message::<RevealCell>()
             .add_message::<UpdateSprite>()
-            .add_systems(Update, (update_sprite, reveal_cell, handle_reveal_click, player_collision_reveals_mine))
+            .add_systems(Update, (update_sprite, reveal_cell, handle_reveal_click))
         ;
     }
 }
 
 #[derive(Message)]
 struct RevealCell {
-    pub x: u32,
-    pub y: u32
+    pub x: i32,
+    pub y: i32
 }
 
 #[derive(Message)]
@@ -141,7 +141,7 @@ fn reveal_cell(
                         if rx < 0 || ry < 0 || rx >= grid.width() as i32 || ry >= grid.height() as i32 { continue; }
 
                         // Queue the neighbors
-                        queue.push((rx as u32, ry as u32));
+                        queue.push((rx, ry));
                     }
                 }
             }
@@ -156,34 +156,6 @@ fn reveal_cell(
     }
 }
 
-fn player_collision_reveals_mine(
-    players: Query<&Transform, With<Player>>,
-    // grid: Res<Grid>,
-    // mut writer: MessageWriter<RevealCell>
-) {
-    let transform = players.single().unwrap();
-    println!("Player Position: {}, {}", transform.translation.x, transform.translation.y);
-    
-    // let Some((x, y)) = world_to_cell(transform.translation.xy(), &grid) else { panic!("Player went out of bounds.") };
-    
-    // let x = x as i32;
-    // let y = y as i32;
-
-    // let scale = transform.scale.xy();
-    // println!("{}, {}", scale.x, scale.y);
-
-    // for dx in 0..(scale.y / grid.cell_size as f32) as i32 {
-    //     for dy in 0..(scale.x / grid.cell_size as f32) as i32 {
-
-    //         if dx + x >= grid.width as i32 || dx + x < 0 { continue; }
-    //         if dy + y >= grid.width as i32 || dy + y < 0 { continue; }
-
-
-    //         writer.write(RevealCell { x: (dx + x) as u32, y: (dy + y) as u32 });
-    //     }
-    // }
-}
-
 fn handle_reveal_click(
     mut events: MessageWriter<RevealCell>,
     grid: Res<Grid>,
@@ -196,6 +168,6 @@ fn handle_reveal_click(
     }
 
     let Some(world_pos) = get_cursor_position(windows, camera_q) else { return; };
-    let Some((cx, cy)) = world_to_cell(world_pos, &grid) else { return; };
-    events.write(RevealCell { x: cx, y: cy });
+    let (x, y) = world_to_cell(world_pos, &grid);
+    events.write(RevealCell { x, y });
 }
