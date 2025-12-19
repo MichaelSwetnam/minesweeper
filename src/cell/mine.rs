@@ -1,5 +1,18 @@
 use bevy::prelude::*;
-use crate::cell::{Cell, CellBehavior, update_border};
+use crate::cell::{CELL_BORDER_PATH, Cell, CellBehavior};
+
+fn update_border(sprite: &mut Sprite, visibility: &mut Visibility, asset_server: &AssetServer, has_border: bool) {
+    match has_border {
+        true => {
+            sprite.image = asset_server.load(CELL_BORDER_PATH);
+            *visibility = Visibility::Visible;
+        },
+        false => {
+            *visibility = Visibility::Hidden;
+        }
+    }
+
+}
 
 /// Mine cells are those which are mines in minesweeper. When revealed, they explode.
 /// They are flaggable.
