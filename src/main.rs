@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use crate::grid::Grid;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
     dotenvy::dotenv()?;
 
     let grid = Grid::default();
