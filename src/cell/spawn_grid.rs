@@ -1,6 +1,7 @@
     use rand::Rng;
 
-    use crate::{cell::cell_factory::CellFactory, grid::Grid};
+    use crate::grid::Grid;
+    use crate::cell::{Air, Wall, Mine, CellBehavior};
     use bevy::prelude::*;
 
     #[derive(Debug, Clone)]
@@ -86,9 +87,9 @@
             let y = index as i32 / grid.width() as i32;
 
             match cell {
-                CellType::Air(n) => CellFactory::spawn_air(&mut commands, &mut grid, &asset_server, x, y, *n),
-                CellType::Mine =>        CellFactory::spawn_mine(&mut commands, &mut grid, &asset_server, x, y),
-                CellType::Wall =>        CellFactory::spawn_wall(&mut commands, &mut grid, &asset_server, x, y),
+                CellType::Air(n) => (Air { neighbor_mines: *n, revealed: false }).spawn(&mut commands, &mut grid, &asset_server, x, y),
+                CellType::Mine => Mine.spawn(&mut commands, &mut grid, &asset_server, x, y),
+                CellType::Wall => Wall.spawn(&mut commands, &mut grid, &asset_server, x, y)
             };
         }
     }

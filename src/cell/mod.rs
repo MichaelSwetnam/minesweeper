@@ -1,7 +1,6 @@
 mod spawn_grid;
 mod reveal_cells;
 mod toggle_flag;
-mod cell_factory;
 
 use bevy::prelude::*;
 
