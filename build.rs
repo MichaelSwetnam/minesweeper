@@ -1,6 +1,7 @@
+#[cfg(not(debug_assertions))]
 use std::{collections::HashMap, fs::File, io::Read};
 
-
+#[cfg(not(debug_assertions))]
 fn build_env_map<'a>(file_content: &'a str) -> HashMap<&'a str, &'a str> {
     let mut map  = HashMap::new();
     for line in file_content.lines() {
@@ -29,7 +30,7 @@ fn build_env_map<'a>(file_content: &'a str) -> HashMap<&'a str, &'a str> {
 }
 
 // Building production
-// #[cfg(not(debug_assertions))]
+#[cfg(not(debug_assertions))]
 fn main() {
     // Only rerun if .env changes.
     println!("cargo::rerun-if-changed=.env");
@@ -57,26 +58,5 @@ fn main() {
     ).unwrap();
 }
 
-// #[cfg(debug_assertions)]
-// fn main() {}
-
-// fn main() {
-//     // 1. Read or compute values you need at build time
-//     //    e.g. read a .env file, query git, generate code, etc.
-
-//     // 2. Communicate with Cargo using println! directives
-//     //    These lines tell Cargo how to adjust the build.
-
-//     // Example: set an environment variable for rustc
-//     println!("cargo:rustc-env=API_KEY=supersecret");
-
-//     // Example: rerun build script if .env changes
-//     println!("cargo:rerun-if-changed=.env");
-
-//     // Example: write out a generated file into OUT_DIR
-//     let out_dir = std::env::var("OUT_DIR").unwrap();
-//     std::fs::write(
-//         format!("{}/generated.rs", out_dir),
-//         r#"pub const API_KEY: &str = "supersecret";"#,
-//     ).unwrap();
-// }
+#[cfg(debug_assertions)]
+fn main() {}
