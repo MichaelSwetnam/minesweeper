@@ -19,13 +19,14 @@ pub fn get_cursor_position(
 pub fn toggle_flag(
     grid: Res<Grid>,
     input: Res<ButtonInput<MouseButton>>,
+    asset_server: Res<AssetServer>,
     mut commands: Commands,
 
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     children_q: Query<&Children>,
     mut cells: Query<(Entity, Option<&Air>, Option<&Wall>, Option<&Flagged>)>,
-    mut content_sprites: Query<&mut Visibility, With<CellContent>>,
+    mut content_sprites: Query<(&mut Sprite, &mut Visibility), With<CellContent>>,
 ) {
     if !input.just_pressed(MouseButton::Right) {
         return;
@@ -60,7 +61,12 @@ pub fn toggle_flag(
 
     // Toggle visibility of the child sprites
     for child in children.iter() {
-        if let Ok(mut visibility) = content_sprites.get_mut(child) {
+        if let Ok((mut sprite, mut visibility)) = content_sprites.get_mut(child) {
+            if !flagged.is_some() {
+                sprite.image = asset_server.load("flag.png");
+                sprite.color = Color::linear_rgb(1.0, 0.0, 0.0);
+            };
+            
             *visibility = if !flagged.is_some() {
                 Visibility::Visible
             } else {
