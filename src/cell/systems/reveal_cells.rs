@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{cell::{Air, Cell, CellBorder, CellContent, Flagged, Mine, Wall, systems::get_cursor_position}, grid::Grid, player::Player};
+use crate::{cell::{Air, Cell, CellBehavior, CellBorder, CellContent, Flagged, Mine, Wall, systems::get_cursor_position}, grid::Grid, player::Player};
 
 pub struct RevealCellPlugin;
 impl Plugin for RevealCellPlugin {
@@ -29,61 +29,29 @@ struct UpdateSprite {
 /// Ie: will display the correct number for neighboring mines.
 /// If there are 0 neighboring mines, the border and content sprites are despawned.
 fn update_sprite(
-    mut commands: Commands,
     mut reader: MessageReader<UpdateSprite>,
     asset_server: Res<AssetServer>,
     
     cells: Query<&Air>,
     children: Query<&Children>,
-    mut content_sprites: Query<(&mut Visibility, &mut Sprite), With<CellContent>>,
-    mut border_sprites: Query<(), With<CellBorder>>
-) {
-    let textures = [
-        asset_server.load("one.png"),
-        asset_server.load("two.png"),
-        asset_server.load("three.png"),
-        asset_server.load("four.png"),
-        asset_server.load("five.png"),
-        asset_server.load("six.png"),
-        asset_server.load("seven.png"),
-        asset_server.load("eight.png"),
-    ]; 
-
-    // https://lospec.com/palette-list/flatter18#comments
-    let texture_colors = [
-        Color::linear_rgb(80.0 / 255.0, 96.0 / 255.0, 219.0 / 255.0),
-        Color::linear_rgb(21.0 / 255.0, 181.0 / 255.0, 81.0 / 255.0),
-        Color::linear_rgb(233.0 / 255.0, 64.0 / 255.0, 51.0 / 255.0),
-        Color::linear_rgb(63.0 / 255.0, 63.0 / 255.0, 143.0 / 255.0),
-        Color::linear_rgb(187.0 / 255.0, 51.0 / 255.0, 37.0 / 255.0),
-        Color::linear_rgb(45.0 / 255.0, 151.0 / 255.0, 170.0 / 255.0),
-        Color::linear_rgb(226.0 / 255.0, 181.0 / 255.0, 23.0 / 255.0),
-        Color::linear_rgb(177.0 / 255.0, 70.0 / 255.0, 193.0 / 255.0),
-    ];
-    
+    mut content_sprites: Query<(&mut Visibility, &mut Sprite), (With<CellContent>, Without<CellBorder>)>,
+    mut border_sprites: Query<(&mut Visibility, &mut Sprite), (With<CellBorder>, Without<CellContent>)>
+) { 
     for UpdateSprite { entity} in reader.read() {
         // Make sure the entity has the air component (only air cells can be revealed)  
-        let Ok(&Air { neighbor_mines, .. }) = cells.get(*entity) else { panic!("UpdateSprite message sent with invalid entity (Did not have the air componnet).") };
+        let Ok(air) = cells.get(*entity) else { panic!("UpdateSprite message sent with invalid entity (Did not have the air componnet).") };
 
         // Get children of the entity
         let Ok(children) = children.get(*entity) else { panic!("UpdateSprite message sent with an invalid cell entity (Had no children).") };
         for &child in children {
             // Is content sprite
             if let Ok((mut visibility, mut sprite)) = content_sprites.get_mut(child) {
-                if neighbor_mines == 0 {
-                    commands.entity(child).despawn();
-                } else {
-                    *visibility = Visibility::Visible;
-                    sprite.image = textures[neighbor_mines as usize - 1].clone();
-                    sprite.color = texture_colors[neighbor_mines as usize - 1];
-                }
+                air.update_content(&mut sprite, &mut visibility, &asset_server);
             }
 
             // Is border sprite
-            if let Ok(_) = border_sprites.get_mut(child) {
-                if neighbor_mines == 0 {
-                    commands.entity(child).despawn();
-                }
+            if let Ok((mut visibility, mut sprite)) = border_sprites.get_mut(child) {
+                air.update_border(&mut sprite, &mut visibility, &asset_server);
             }
         }
     }
