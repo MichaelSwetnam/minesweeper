@@ -1,7 +1,6 @@
 mod camera;
 mod cell;
 mod grid;
-mod player;
 mod env;
 
 use bevy::prelude::*;
@@ -20,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .set(ImagePlugin::default_nearest())    
         )
         .add_plugins(
-            (camera::CameraPlugin, cell::CellPlugin, player::PlayerPlugin)
+            (camera::CameraPlugin, cell::CellPlugin)
         )
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(grid)

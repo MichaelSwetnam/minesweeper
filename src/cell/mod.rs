@@ -36,6 +36,7 @@ pub struct Cell;
 impl Cell {
     /// Returns all grid cells overlapped by the given transform.
     /// Assumes sprites are centered and each cell is exactly grid.cell_size() in world units.
+    #[allow(dead_code)]
     fn touched_by(transform: &Transform, grid: &Grid) -> Vec<(i32, i32)> {
         let cell = grid.cell_size() as f32;
         let half_cell = cell * 0.5;

@@ -7,5 +7,5 @@ pub enum EnvVariable {
     CHUNK_HEIGHT,
     CELL_SIZE,
     CELL_SCALE,
-    PLAYER_SPEED
+    CAMERA_SPEED
 }
